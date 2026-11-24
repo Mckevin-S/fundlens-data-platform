@@ -1,0 +1,31 @@
+name: infra-securite
+on:
+  push: { branches: [main, develop, "feature/**"] }
+  pull_request:
+permissions: { contents: read, security-events: write }
+jobs:
+  infra:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - run: helm lint infra/helm/fundlens && helm template fundlens infra/helm/fundlens > /dev/null
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.8.5" }
+      - run: terraform -chdir=infra/terraform fmt -check && terraform -chdir=infra/terraform init -backend=false && terraform -chdir=infra/terraform validate
+      - run: cp .env.example .env && docker compose -f infra/compose/docker-compose.yml --profile data config -q
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vulnérabilités, secrets et mauvaises configurations (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with: { scan-type: fs, scanners: "vuln,secret,misconfig", severity: "HIGH,CRITICAL", ignore-unfixed: true, exit-code: "1" }
+  kind:
+    runs-on: ubuntu-latest
+    needs: infra
+    steps:
+      - uses: actions/checkout@v4
+      - uses: helm/kind-action@v1
+      - name: "Chart Helm validé par le serveur Kubernetes de kind"
+        run: helm install fundlens infra/helm/fundlens --dry-run=server

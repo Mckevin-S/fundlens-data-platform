@@ -1,0 +1,154 @@
+# Environnement local complet : `docker compose -f infra/compose/docker-compose.yml up -d`
+# Profil « data » (Hadoop, Spark/YARN, Airflow, Oracle) : ajouter `--profile data`.
+name: fundlens
+
+x-env: &env
+  env_file: [../../.env]
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    <<: *env
+    environment:
+      POSTGRES_DB: fundlens
+      POSTGRES_USER: fundlens
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U fundlens"], interval: 5s, retries: 10 }
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  mongo:
+    image: mongo:7
+    healthcheck: { test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1})"], interval: 10s, retries: 10 }
+
+  fund-api:
+    build: ../../fund-api
+    <<: *env
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/fundlens
+      DB_USER: fundlens
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      MONGO_URI: mongodb://mongo:27017/fundlens
+      CORS_ORIGINS: http://localhost:4200,http://localhost:8081
+    depends_on:
+      postgres: { condition: service_healthy }
+      mongo: { condition: service_healthy }
+    ports: ["8080:8080"]
+
+  compliance-service:
+    build: ../../compliance-service
+    ports: ["8085:8085"]
+
+  portal-bff:
+    build: ../../portal-bff
+    environment:
+      FUND_API_URL: http://fund-api:8080
+    depends_on: [fund-api]
+
+  investor-portal:
+    build: ../../investor-portal
+    volumes: ["./httpd.conf:/usr/local/apache2/conf/httpd.conf:ro"]
+    depends_on: [portal-bff]
+    ports: ["8081:80"]
+
+  cockpit:
+    build: ../../cockpit
+    depends_on: [fund-api]
+    ports: ["4200:80"]
+
+  ollama:
+    image: ollama/ollama:0.4.7
+    volumes: [ollama:/root/.ollama]
+
+  rag-assistant:
+    build: ../../rag-assistant
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      FUND_API_URL: http://fund-api:8080
+    depends_on: [ollama, fund-api]
+    ports: ["8000:8000"]
+
+  depositary-portal:
+    build: ../../rpa/depositary-portal
+    <<: *env
+    ports: ["8090:8090"]
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3001:3000"]
+
+  # ---------- profil data ----------
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    profiles: [data]
+    <<: *env
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD}
+      APP_USER: backoffice
+      APP_USER_PASSWORD: ${ORACLE_PASSWORD}
+    volumes: ["../../legacy-backoffice/oracle-init.sql:/container-entrypoint-initdb.d/01-init.sql:ro"]
+
+  legacy-backoffice:
+    build: ../../legacy-backoffice
+    profiles: [data]
+    <<: *env
+    environment:
+      ORACLE_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      ORACLE_USER: backoffice
+    depends_on: [oracle]
+
+  namenode:
+    image: apache/hadoop:3.3.6
+    profiles: [data]
+    command: ["hdfs", "namenode"]
+    environment: &hadoop
+      ENSURE_NAMENODE_DIR: /tmp/hadoop-root/dfs/name
+      CORE-SITE.XML_fs.default.name: hdfs://namenode
+      CORE-SITE.XML_fs.defaultFS: hdfs://namenode
+      HDFS-SITE.XML_dfs.replication: "1"
+      YARN-SITE.XML_yarn.resourcemanager.hostname: resourcemanager
+    ports: ["9870:9870"]
+
+  datanode:
+    image: apache/hadoop:3.3.6
+    profiles: [data]
+    command: ["hdfs", "datanode"]
+    environment: *hadoop
+
+  resourcemanager:
+    image: apache/hadoop:3.3.6
+    profiles: [data]
+    command: ["yarn", "resourcemanager"]
+    environment: *hadoop
+    ports: ["8088:8088"]
+
+  nodemanager:
+    image: apache/hadoop:3.3.6
+    profiles: [data]
+    command: ["yarn", "nodemanager"]
+    environment: *hadoop
+
+  airflow:
+    image: apache/airflow:2.9.3-python3.12
+    profiles: [data]
+    command: standalone
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      PYTHONPATH: /opt/airflow/fundlens
+    volumes:
+      - ../../data/airflow/dags:/opt/airflow/dags:ro
+      - ../../data/airflow:/opt/airflow/fundlens:ro
+      - ../../contracts:/opt/airflow/contracts:ro
+    ports: ["8089:8080"]
+
+volumes:
+  pgdata:
+  ollama:

@@ -1,0 +1,26 @@
+name: data
+on:
+  push: { paths: ["data/dbt/**", "data/spark/**", ".github/workflows/data.yml"] }
+  pull_request: { paths: ["data/dbt/**", "data/spark/**"] }
+permissions: { contents: read }
+jobs:
+  dbt:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: data/dbt } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install "dbt-core==1.8.*" "dbt-duckdb==1.8.*"
+      - run: dbt deps --profiles-dir .
+      - name: dbt build sur DuckDB (contrats, tests, VL de référence)
+        run: dbt build --profiles-dir . --target dev
+  spark:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: data/spark } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17", cache: sbt }
+      - uses: sbt/setup-sbt@v1
+      - run: sbt test assembly

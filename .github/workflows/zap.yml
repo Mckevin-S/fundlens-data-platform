@@ -1,0 +1,15 @@
+name: zap
+on:
+  workflow_dispatch:
+  schedule: [{ cron: "0 3 * * 1" }]
+permissions: { contents: read }
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env && docker compose -f infra/compose/docker-compose.yml --env-file .env up -d --build postgres mongo fund-api portal-bff investor-portal
+      - run: sleep 60
+      - name: OWASP ZAP baseline sur le portail investisseurs
+        uses: zaproxy/action-baseline@v0.14.0
+        with: { target: "http://localhost:8081", allow_issue_writing: false }

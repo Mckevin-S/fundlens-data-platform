@@ -1,0 +1,42 @@
+{{- range $name, $svc := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels: { app.kubernetes.io/name: {{ $name }}, app.kubernetes.io/part-of: fundlens }
+spec:
+  replicas: {{ $svc.replicas }}
+  selector:
+    matchLabels: { app.kubernetes.io/name: {{ $name }} }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: {{ $name }}, app.kubernetes.io/part-of: fundlens }
+    spec:
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: {{ $name }}
+          image: "{{ $.Values.image.registry }}/{{ $name }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          ports: [{ containerPort: {{ $svc.port }} }]
+          securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: [ALL] } }
+          env:
+            {{- range $k, $v := $svc.env }}
+            - { name: {{ $k }}, value: {{ $v | quote }} }
+            {{- end }}
+            {{- range $k, $ref := $svc.secretEnv }}
+            - name: {{ $k }}
+              valueFrom: { secretKeyRef: { name: {{ $ref.secret }}, key: {{ $ref.key }} } }
+            {{- end }}
+          readinessProbe: { httpGet: { path: {{ $svc.health }}, port: {{ $svc.port }} }, initialDelaySeconds: 10, periodSeconds: 10 }
+          livenessProbe: { httpGet: { path: {{ $svc.health }}, port: {{ $svc.port }} }, initialDelaySeconds: 30, periodSeconds: 20 }
+          resources: {{- toYaml $svc.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+spec:
+  selector: { app.kubernetes.io/name: {{ $name }} }
+  ports: [{ port: {{ $svc.port }}, targetPort: {{ $svc.port }} }]
+{{- end }}

@@ -1,0 +1,42 @@
+image:
+  registry: ghcr.io/mckevin-s/fundlens
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+services:
+  fund-api:
+    port: 8080
+    replicas: 2
+    health: /actuator/health
+    env:
+      DB_URL: jdbc:postgresql://postgres:5432/fundlens
+      DB_USER: fundlens
+      MONGO_URI: mongodb://mongo:27017/fundlens
+    secretEnv:
+      DB_PASSWORD: { secret: fundlens-db, key: password }
+    resources: { requests: { cpu: 250m, memory: 512Mi }, limits: { memory: 1Gi } }
+  portal-bff:
+    port: 3000
+    replicas: 2
+    health: /health
+    env:
+      FUND_API_URL: http://fund-api:8080
+    resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { memory: 256Mi } }
+  investor-portal:
+    port: 80
+    replicas: 1
+    health: /
+    resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { memory: 128Mi } }
+  cockpit:
+    port: 80
+    replicas: 1
+    health: /
+    resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { memory: 128Mi } }
+  rag-assistant:
+    port: 8000
+    replicas: 1
+    health: /health
+    env:
+      OLLAMA_URL: http://ollama:11434
+      FUND_API_URL: http://fund-api:8080
+    resources: { requests: { cpu: 200m, memory: 256Mi }, limits: { memory: 512Mi } }

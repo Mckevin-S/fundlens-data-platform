@@ -1,0 +1,30 @@
+name: python
+on:
+  push: { paths: ["migration-assistant/**", "rag-assistant/**", "data/airflow/**", "data/databricks/**", "rpa/**", "contracts/**", ".github/workflows/python.yml"] }
+  pull_request: { paths: ["migration-assistant/**", "rag-assistant/**", "data/**", "rpa/**", "contracts/**"] }
+permissions: { contents: read }
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { package: [migration-assistant, rag-assistant] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e "${{ matrix.package }}[dev]" ruff && ruff check ${{ matrix.package }}
+      - run: pytest
+        working-directory: ${{ matrix.package }}
+  data-et-rpa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Dépendances (Airflow avec ses contraintes officielles)
+        run: |
+          pip install "apache-airflow==2.9.3" apache-airflow-providers-apache-spark apache-airflow-providers-oracle \
+            --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.12.txt"
+          pip install jsonschema requests boto3 google-cloud-bigquery fastapi uvicorn python-multipart httpx pytest
+      - run: pytest -o addopts="" data/airflow/tests data/databricks/tests rpa/depositary-portal/tests
+        env: { PYTHONPATH: data/airflow }

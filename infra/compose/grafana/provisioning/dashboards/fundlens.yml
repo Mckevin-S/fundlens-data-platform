@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: fundlens
+    folder: FundLens
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

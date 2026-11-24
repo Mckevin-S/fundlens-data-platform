@@ -1,0 +1,17 @@
+name: dotnet
+on:
+  push: { paths: ["compliance-service/**", ".github/workflows/dotnet.yml"] }
+  pull_request: { paths: ["compliance-service/**"] }
+permissions: { contents: read }
+jobs:
+  test-and-iis:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: "8.0.x" }
+      - name: Tests xUnit
+        run: dotnet test compliance-service/Compliance.sln
+      - name: Publication sur IIS et contrôle de santé
+        shell: pwsh
+        run: ./compliance-service/deploy/deploy-iis.ps1 -Port 8085

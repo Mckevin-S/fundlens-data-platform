@@ -1,0 +1,6 @@
+apiVersion: v2
+name: fundlens
+description: Services applicatifs de fundlens-data-platform (fund-api, BFF, fronts, RAG, conformité)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

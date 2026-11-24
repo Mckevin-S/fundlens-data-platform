@@ -1,6 +1,6 @@
 # fundlens-data-platform
 
-> **Statut : en cours de réalisation.** Ce dépôt contient pour l'instant la conception et la feuille de route ; le code arrive lot par lot (voir « Avancement »).
+> **Statut : MVP en cours de validation.** Tous les lots ont une première version ; une partie est testée, le reste doit encore passer la CI (voir « Avancement »).
 
 Plateforme de données et d'applications pour une société de gestion d'actifs : chaque matin, valeur liquidative (VL), performance, risque et contrôles réglementaires des fonds, calculés à partir d'un back-office legacy, de fichiers de marché et d'un portail dépositaire sans API, avec un assistant IA sur la documentation des fonds.
 
@@ -49,27 +49,42 @@ data/{airflow,spark,dbt,databricks}/  rpa/uipath/  infra/{compose,helm,terraform
 
 ## Avancement
 
-| Lot | Contenu | Statut |
-|---|---|---|
-| L1 | Socle : Compose, CI, code-guard | en cours – code-guard, contrats JSON et CI livrés |
-| L2 | Ingestion : UiPath, Airflow, HDFS, S3 | à faire |
-| L3 | Calculs : Spark, Databricks, dbt, Elementary | à faire |
-| L4 | fund-api + migration du legacy | à faire |
-| L5 | compliance-service .NET / IIS | à faire |
-| L6 | Cockpit Angular, portail React, BFF | à faire |
-| L7 | Assistant RAG | à faire |
-| L8 | Kubernetes, Terraform, supervision, démo | à faire |
+Chaque lot a sa version MVP. **Testé** = les tests ont réellement été exécutés pendant le développement ; **à vérifier** = code écrit sans pouvoir être compilé dans l'environnement de développement (dépôts Maven/NuGet/sbt inaccessibles), à valider par la CI ou en local.
 
-## Démarrage rapide (lot 1)
+| Lot | Composants | Tests | Statut |
+|---|---|---|---|
+| L1 | code-guard, contrats JSON, CI | 26 pytest | testé |
+| L2 | portail dépositaire simulé + robot UiPath, DAG Airflow, WebHDFS, S3, BigQuery | 12 pytest | testé (Python) ; UiPath et DAG complet à vérifier |
+| L3 | dbt (DuckDB / BigQuery / Snowflake), Spark Scala, VaR Databricks | 21 tests dbt + 6 pytest ; ScalaTest | dbt et VaR testés ; Spark à vérifier |
+| L4 | fund-api (Spring Boot hexagonal), legacy Jakarta EE, migration-assistant | 13 pytest ; JUnit, Testcontainers, ArchUnit | migration testée ; Java à vérifier (`mvn verify`) |
+| L5 | compliance-service .NET 8, Razor, IIS | xUnit | à vérifier (`dotnet test`) |
+| L6 | cockpit Angular, portail React, BFF NestJS | 5 Karma, 4 Vitest, 7 Jest, 3 Playwright E2E | testé |
+| L7 | assistant RAG + agent | 8 pytest | testé |
+| L8 | Docker Compose, Helm, Terraform, Prometheus/Grafana, Trivy, ZAP | `docker compose config` | Compose validé ; Helm et Terraform à vérifier |
+
+## Démarrage rapide
 
 ```bash
-pip install -e "code-guard[dev]"
-cd code-guard && pytest        # 25 tests, couverture 100 %
-cd .. && code-guard            # analyse tout le dépôt
-pre-commit install             # contrôle des fichiers modifiés à chaque commit
+cp .env.example .env
+docker compose -f infra/compose/docker-compose.yml --env-file .env up -d --build
 ```
 
-Voir [ADR 0001](docs/adr/0001-controle-automatique-du-code.md).
+Détails dans le [runbook](docs/runbook.md) ; usage de l'IA dans [docs/ia.md](docs/ia.md) ; contrôle du code dans l'[ADR 0001](docs/adr/0001-controle-automatique-du-code.md).
+
+### Lancer les tests
+
+```bash
+pip install -e "code-guard[dev]" -e "migration-assistant[dev]" -e "rag-assistant[dev]"
+(cd code-guard && pytest) && (cd migration-assistant && pytest) && (cd rag-assistant && pytest)
+(cd data/dbt && dbt build --profiles-dir .)                     # dbt-duckdb
+mvn -f fund-api/pom.xml verify && mvn -f legacy-backoffice/pom.xml verify
+dotnet test compliance-service/Compliance.sln
+(cd portal-bff && npm ci && npm test && npm run test:e2e)
+(cd investor-portal && npm ci && npm test)
+(cd cockpit && npm ci && npx ng test --watch=false)
+(cd e2e && npm ci && npx playwright test)
+(cd data/spark && sbt test)
+```
 
 ## Méthode
 
