@@ -1,0 +1,20 @@
+# secrets
+.env
+*.env
+!.env.example
+# builds
+target/
+build/
+dist/
+bin/
+obj/
+node_modules/
+# python
+__pycache__/
+*.egg-info/
+.venv/
+.coverage
+.pytest_cache/
+# IDE
+.idea/
+.vscode/

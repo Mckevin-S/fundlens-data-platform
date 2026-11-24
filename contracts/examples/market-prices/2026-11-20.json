@@ -1,0 +1,9 @@
+{
+  "asOfDate": "2026-11-20",
+  "source": "simulateur-marche",
+  "prices": [
+    { "isin": "FR0000120271", "currency": "EUR", "close": 61.42 },
+    { "isin": "FR0000131104", "currency": "EUR", "close": 74.18 },
+    { "isin": "US0378331005", "currency": "USD", "close": 228.35 }
+  ]
+}

@@ -1,0 +1,39 @@
+name: code-guard
+
+on:
+  push:
+    branches: [main, develop, "feature/**", "release/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests de code-guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Installer
+        run: pip install -e "code-guard[dev]"
+      - name: Lint
+        run: ruff check code-guard/src code-guard/tests
+      - name: Tests (couverture ≥ 90 %)
+        working-directory: code-guard
+        run: pytest
+
+  scan:
+    name: Analyse du dépôt
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ./code-guard
+      - name: code-guard sur tout le dépôt
+        run: code-guard --format text

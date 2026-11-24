@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: code-guard
+        name: code-guard (SQL, Java, contrats JSON, secrets)
+        entry: code-guard
+        language: python
+        additional_dependencies: ["./code-guard"]
+        pass_filenames: true

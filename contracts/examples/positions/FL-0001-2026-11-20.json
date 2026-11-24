@@ -1,0 +1,11 @@
+{
+  "asOfDate": "2026-11-20",
+  "fundId": "FL-0001",
+  "sharesOutstanding": 125000,
+  "cash": 48250.75,
+  "positions": [
+    { "isin": "FR0000120271", "quantity": 12000 },
+    { "isin": "FR0000131104", "quantity": 8500 },
+    { "isin": "US0378331005", "quantity": 1500 }
+  ]
+}

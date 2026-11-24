@@ -51,7 +51,7 @@ data/{airflow,spark,dbt,databricks}/  rpa/uipath/  infra/{compose,helm,terraform
 
 | Lot | Contenu | Statut |
 |---|---|---|
-| L1 | Socle : Compose, CI, code-guard | à faire |
+| L1 | Socle : Compose, CI, code-guard | en cours – code-guard, contrats JSON et CI livrés |
 | L2 | Ingestion : UiPath, Airflow, HDFS, S3 | à faire |
 | L3 | Calculs : Spark, Databricks, dbt, Elementary | à faire |
 | L4 | fund-api + migration du legacy | à faire |
@@ -59,6 +59,17 @@ data/{airflow,spark,dbt,databricks}/  rpa/uipath/  infra/{compose,helm,terraform
 | L6 | Cockpit Angular, portail React, BFF | à faire |
 | L7 | Assistant RAG | à faire |
 | L8 | Kubernetes, Terraform, supervision, démo | à faire |
+
+## Démarrage rapide (lot 1)
+
+```bash
+pip install -e "code-guard[dev]"
+cd code-guard && pytest        # 25 tests, couverture 100 %
+cd .. && code-guard            # analyse tout le dépôt
+pre-commit install             # contrôle des fichiers modifiés à chaque commit
+```
+
+Voir [ADR 0001](docs/adr/0001-controle-automatique-du-code.md).
 
 ## Méthode
 
