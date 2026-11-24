@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "migration-assistant"
+version = "0.1.0"
+description = "Migration outillée Jakarta EE (JAX-RS, EJB) vers Spring Boot, avec assistance LLM optionnelle (Ollama)."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6"]
+
+[project.scripts]
+migration-assistant = "migration_assistant.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=migration_assistant --cov-report=term-missing --cov-fail-under=85"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"

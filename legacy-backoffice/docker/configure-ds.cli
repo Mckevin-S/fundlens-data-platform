@@ -1,0 +1,7 @@
+# Exécuté au démarrage : jboss-cli.sh --file=/opt/jboss/configure-ds.cli
+embed-server --std-out=echo
+module add --name=com.oracle --resources=/opt/jboss/ojdbc11.jar --dependencies=javax.api,javax.transaction.api
+/subsystem=datasources/jdbc-driver=oracle:add(driver-name=oracle,driver-module-name=com.oracle)
+data-source add --name=BackofficeDS --jndi-name=java:jboss/datasources/BackofficeDS --driver-name=oracle \
+  --connection-url=${env.ORACLE_URL} --user-name=${env.ORACLE_USER} --password=${env.ORACLE_PASSWORD}
+stop-embedded-server

@@ -1,0 +1,13 @@
+# Recettes OpenRewrite appliquées après la conversion déterministe :
+#   mvn -U org.openrewrite.maven:rewrite-maven-plugin:run \
+#     -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-migrate-java:RELEASE,org.openrewrite.recipe:rewrite-spring:RELEASE \
+#     -Drewrite.activeRecipes=com.fundlens.MigrationVersSpringBoot
+type: specs.openrewrite.org/v1beta/recipe
+name: com.fundlens.MigrationVersSpringBoot
+displayName: Back-office Jakarta EE vers Spring Boot 3.3
+recipeList:
+  - org.openrewrite.java.migrate.jakarta.JavaxMigrationToJakarta
+  - org.openrewrite.java.migrate.UpgradeToJava21
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3
+  - org.openrewrite.java.spring.NoAutowiredOnConstructor
+  - org.openrewrite.staticanalysis.CommonStaticAnalysis
