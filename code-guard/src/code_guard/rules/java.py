@@ -44,7 +44,7 @@ def check_java_file(path: Path, text: str, config: Config) -> list[Finding]:
         if _is_main_source(path) and SYSOUT.search(line):
             findings.append(Finding(rel, number, "java.no-sysout",
                                     "utiliser un logger (SLF4J) plutôt que System.out/err"))
-        if AUTOWIRED.match(line):
+        if _is_main_source(path) and AUTOWIRED.match(line):
             following = next((lines[i] for i in range(number, len(lines)) if lines[i].strip()), "")
             if FIELD_DECL.match(following) and "(" not in following:
                 findings.append(Finding(rel, number, "java.no-field-injection",

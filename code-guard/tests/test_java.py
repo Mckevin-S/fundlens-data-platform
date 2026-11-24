@@ -40,6 +40,7 @@ def test_field_injection_forbidden_but_constructor_injection_allowed(repo):
     ctor = "package a;\npublic class Svc {\n    @Autowired\n    public Svc(Repo repo) {}\n}\n"
     assert rules(repo, "x/src/main/java/a/Svc.java", field) == ["java.no-field-injection"]
     assert rules(repo, "x/src/main/java/a/Svc.java", ctor) == []
+    assert rules(repo, "x/src/test/java/a/Svc.java", field) == []
 
 
 def test_domain_must_not_depend_on_frameworks(repo):

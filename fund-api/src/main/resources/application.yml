@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: fund-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/fundlens}
+    username: ${DB_USER:fundlens}
+    password: ${DB_PASSWORD:}
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/fundlens}
+  flyway:
+    locations: classpath:db/migration
+
+fundlens:
+  nav:
+    alert-threshold: 0.05
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:4200,http://localhost:3000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
