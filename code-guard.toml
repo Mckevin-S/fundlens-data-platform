@@ -1,0 +1,17 @@
+[code-guard]
+excludes = [".git", "node_modules", "target", "build", "dist", ".venv", "__pycache__", "tests"]
+
+[code-guard.sql]
+dialect = "bigquery"
+paths = ["data/dbt"]
+exclude_rules = []
+
+[code-guard.contracts]
+dir = "contracts"
+
+[code-guard.java]
+domain_packages = [".domain."]
+forbidden_in_domain = ["org.springframework", "jakarta.persistence", "javax.persistence"]
+
+[code-guard.secrets]
+allowlist = [".env.example"]

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fundlens.local/contracts/positions.schema.json",
+  "version": "1.0.0",
+  "title": "Positions des fonds en fin de journée",
+  "description": "Data product « Positions » : quantités détenues par fonds et par titre, extraites du back-office.",
+  "type": "object",
+  "required": ["asOfDate", "fundId", "sharesOutstanding", "cash", "positions"],
+  "additionalProperties": false,
+  "properties": {
+    "asOfDate": { "type": "string", "format": "date" },
+    "fundId": { "type": "string", "pattern": "^FL-[0-9]{4}$" },
+    "sharesOutstanding": { "type": "number", "exclusiveMinimum": 0 },
+    "cash": { "type": "number" },
+    "positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["isin", "quantity"],
+        "additionalProperties": false,
+        "properties": {
+          "isin": { "type": "string", "pattern": "^[A-Z]{2}[A-Z0-9]{9}[0-9]$" },
+          "quantity": { "type": "number" }
+        }
+      }
+    }
+  }
+}

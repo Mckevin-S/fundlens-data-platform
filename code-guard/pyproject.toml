@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "code-guard"
+version = "0.1.0"
+description = "Contrôle et validation automatique du code de fundlens-data-platform (SQL, Java, contrats JSON, secrets)."
+requires-python = ">=3.11"
+dependencies = ["sqlfluff>=3,<4", "jsonschema>=4,<5"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6"]
+
+[project.scripts]
+code-guard = "code_guard.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=code_guard --cov-report=term-missing --cov-fail-under=90"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
