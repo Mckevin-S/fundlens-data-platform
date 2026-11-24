@@ -1,0 +1,37 @@
+<Activity mc:Ignorable="sap sap2010" x:Class="Main"
+  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
+  xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
+  xmlns:ui="http://schemas.uipath.com/workflow/activities"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <x:Members>
+    <x:Property Name="in_PortalUrl" Type="InArgument(x:String)" />
+    <x:Property Name="in_AsOfDate" Type="InArgument(x:String)" />
+    <x:Property Name="in_InboxFolder" Type="InArgument(x:String)" />
+  </x:Members>
+  <Sequence DisplayName="Relevés dépositaire">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="x:String" Name="user" />
+      <Variable x:TypeArguments="x:Security.SecureString" Name="password" />
+    </Sequence.Variables>
+    <!-- Identifiants lus dans Orchestrator (ressource « Identifiants »), jamais dans le projet -->
+    <ui:GetRobotCredential DisplayName="Identifiants du portail" AssetName="DepositairePortal" Username="[user]" Password="[password]" />
+    <ui:UseBrowser DisplayName="Ouvrir le portail" Url="[in_PortalUrl]" BrowserType="Edge">
+      <ui:UseBrowser.Body>
+        <Sequence DisplayName="Connexion et téléchargement">
+          <ui:TypeInto DisplayName="Identifiant" Text="[user]" Selector="&lt;webctrl id='user' /&gt;" />
+          <ui:TypeSecureText DisplayName="Mot de passe" SecureText="[password]" Selector="&lt;webctrl id='password' /&gt;" />
+          <ui:Click DisplayName="Connexion" Selector="&lt;webctrl id='submit' /&gt;" />
+          <ui:CheckAppState DisplayName="Liste des relevés affichée" Selector="&lt;webctrl id='statements' /&gt;" Timeout="15000" />
+          <ui:ForEachUiElement DisplayName="Chaque relevé du jour" Selector="[&quot;&lt;webctrl tag='a' class='download' href='*&quot; + in_AsOfDate + &quot;.json' /&gt;&quot;]">
+            <ui:ForEachUiElement.Body>
+              <ui:Click DisplayName="Télécharger" />
+            </ui:ForEachUiElement.Body>
+          </ui:ForEachUiElement>
+        </Sequence>
+      </ui:UseBrowser.Body>
+    </ui:UseBrowser>
+    <ui:MoveFile DisplayName="Déposer dans la boîte d'entrée Airflow" Path="[Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + &quot;\Downloads\positions-*-&quot; + in_AsOfDate + &quot;.json&quot;]" Destination="[in_InboxFolder]" Overwrite="True" />
+  </Sequence>
+</Activity>

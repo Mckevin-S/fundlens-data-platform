@@ -1,0 +1,17 @@
+{
+  "name": "FundLens.ReleveDepositaire",
+  "description": "Télécharge chaque soir les relevés de positions sur le portail dépositaire (sans API) et les dépose dans la boîte d'entrée d'Airflow.",
+  "main": "Main.xaml",
+  "dependencies": {
+    "UiPath.System.Activities": "[24.10.4]",
+    "UiPath.UIAutomation.Activities": "[24.10.6]",
+    "UiPath.WebAPI.Activities": "[1.21.0]"
+  },
+  "schemaVersion": "4.0",
+  "studioVersion": "24.10.1",
+  "projectVersion": "1.0.0",
+  "runtimeOptions": { "isAttended": false, "requiresUserInteraction": false },
+  "designOptions": { "projectProfile": "Developement", "outputType": "Process" },
+  "expressionLanguage": "VisualBasic",
+  "targetFramework": "Windows"
+}
