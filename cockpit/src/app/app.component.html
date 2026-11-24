@@ -1,0 +1,44 @@
+<main>
+  <h1>Cockpit des gérants</h1>
+  <form class="filters" (ngSubmit)="refresh()">
+    <label>Fonds <input name="fundId" [(ngModel)]="fundId" required /></label>
+    <label>Du <input name="from" type="date" [(ngModel)]="from" /></label>
+    <label>Au <input name="to" type="date" [(ngModel)]="to" /></label>
+    <button type="submit" [disabled]="loading()">Calculer</button>
+  </form>
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  @if (nav(); as n) {
+    <section class="kpis">
+      <div><span>VL au {{ n.asOf }}</span><strong data-testid="nav">{{ n.navPerShare | number: '1.4-4' : 'fr' }} €</strong></div>
+      <div><span>Actif net</span><strong>{{ n.netAssets | number: '1.2-2' : 'fr' }} €</strong></div>
+      @if (performance(); as p) {
+        <div>
+          <span>Performance {{ p.from }} → {{ p.to }}</span>
+          <strong data-testid="perf" [class.down]="p.periodReturn < 0">{{ p.periodReturn | percent: '1.2-2' : 'fr' }}</strong>
+        </div>
+      }
+    </section>
+
+    <h2>Contributions</h2>
+    <ul class="bars">
+      @for (c of contributions(); track c.isin) {
+        <li>
+          <span class="isin">{{ c.isin }}</span>
+          <span class="bar" [class.down]="c.value < 0" [style.width.%]="barWidth(c.value)"></span>
+          <span>{{ c.value | percent: '1.2-2' : 'fr' }}</span>
+        </li>
+      }
+    </ul>
+
+    <h2>Alertes</h2>
+    @for (a of alerts(); track a.asOf) {
+      <p class="alert" data-testid="alert">{{ a.asOf }} – {{ a.message }}</p>
+    } @empty {
+      <p>Aucune alerte.</p>
+    }
+  }
+</main>
