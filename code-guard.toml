@@ -1,5 +1,5 @@
 [code-guard]
-excludes = [".git", "node_modules", "target", "build", "dist", ".venv", "__pycache__", "tests"]
+excludes = [".git", ".angular", "coverage", "node_modules", "target", "build", "dist", ".venv", "__pycache__", "tests"]
 
 [code-guard.sql]
 dialect = "bigquery"

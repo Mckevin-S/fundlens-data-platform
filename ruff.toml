@@ -1,0 +1,9 @@
+line-length = 120
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "I", "B", "UP", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # caractères typographiques français dans les textes
+
+[lint.per-file-ignores]
+"data/databricks/var_historique.py" = ["F821"]

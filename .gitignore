@@ -18,3 +18,9 @@ __pycache__/
 # IDE
 .idea/
 .vscode/
+.angular/
+coverage/
+*.duckdb
+data/dbt/target/
+data/dbt/logs/
+data/dbt/dbt_packages/

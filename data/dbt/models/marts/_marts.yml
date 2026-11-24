@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: fct_position_valuation
+    description: Valeur en euros de chaque ligne de portefeuille (data product Positions).
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: as_of
+        data_type: date
+        tests: [not_null]
+      - name: fund_id
+        data_type: varchar
+        tests: [not_null, {relationships: {to: ref('funds'), field: fund_id}}]
+      - name: isin
+        data_type: varchar
+        tests: [not_null]
+      - name: quantity
+        data_type: decimal(20, 4)
+      - name: currency
+        data_type: varchar
+        tests: [{accepted_values: {values: ['EUR', 'USD', 'GBP', 'CHF']}}]
+      - name: close_price
+        data_type: decimal(20, 6)
+      - name: rate_to_eur
+        data_type: decimal(20, 8)
+        tests: [not_null]
+      - name: value_eur
+        data_type: decimal(20, 2)
+        tests: [not_null]
+
+  - name: fct_nav
+    description: Valeur liquidative quotidienne par fonds.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: as_of
+        data_type: date
+        tests: [not_null]
+      - name: fund_id
+        data_type: varchar
+        tests: [not_null]
+      - name: net_assets
+        data_type: decimal(20, 2)
+      - name: nav_per_share
+        data_type: decimal(20, 4)
+        tests: [not_null]
+    tests:
+      - dbt_utils_free_unique_combination:
+          columns: [as_of, fund_id]

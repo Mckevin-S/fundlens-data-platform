@@ -1,0 +1,25 @@
+# Cibles : dev (DuckDB local, tests et CI), bigquery (principale), snowflake (seconde cible, mêmes modèles).
+# Aucun secret ici : tout passe par des variables d'environnement.
+fundlens:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'fundlens.duckdb') }}"
+    bigquery:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT') }}"
+      dataset: fundlens
+      location: EU
+      threads: 4
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: TRANSFORMER
+      warehouse: FUNDLENS_WH
+      database: FUNDLENS
+      schema: ANALYTICS
+      threads: 4
